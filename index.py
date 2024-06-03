@@ -1,5 +1,7 @@
 import subprocess
 import sys
+import time
+import random
 
 def install(package):
     subprocess.check_call([sys.executable, "-m", "pip", "install", package])
@@ -23,6 +25,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
@@ -73,15 +76,14 @@ driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () =>
 data = []
 
 def scroll_page(driver):
+    actions = ActionChains(driver)
     last_height = driver.execute_script("return document.body.scrollHeight")
     while True:
-        driver.execute_script("window.scrollBy(0, 250);")  # Scrollar para baixo em 300 pixels
-        time.sleep(0.1)  # Aguardar o carregamento dos dados
-        new_height = driver.execute_script("return document.body.scrollHeight")
-        if new_height == last_height:
-            driver.execute_script("window.scrollBy(0, -350);")
-        last_height = new_height
-
+        actions.send_keys(Keys.END).perform()
+        time.sleep(random.uniform(0.2, 0.8))
+        actions.send_keys(Keys.HOME).perform()
+        time.sleep(random.uniform(0.2, 0.8))
+        
         # Verificar se o botão existe e clicar nele
         # click_button_if_exists(driver)
 
