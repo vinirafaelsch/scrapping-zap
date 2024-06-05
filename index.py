@@ -80,58 +80,66 @@ def scroll_page(driver):
     last_height = driver.execute_script("return document.body.scrollHeight")
     while True:
         actions.send_keys(Keys.END).perform()
-        time.sleep(random.uniform(0.2, 0.8))
+        time.sleep(random.uniform(0.3, 0.6))
         actions.send_keys(Keys.HOME).perform()
-        time.sleep(random.uniform(0.2, 0.8))
+        time.sleep(random.uniform(0.3, 0.6))
         
         # Verificar se o botão existe e clicar nele
-        # click_button_if_exists(driver)
+        click_button_if_exists(driver)
 
 def click_button_if_exists(driver):
     try:
         # Esperar até que o botão esteja presente e clicável
-        button = WebDriverWait(driver, 0.05).until(
+        button = WebDriverWait(driver, 0.02).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, 'section.listing-wrapper__pagination nav[data-testid="l-pagination"] button[aria-label="Próxima página"]'))
         )
         driver.execute_script("arguments[0].scrollIntoView();", button)
         # time.sleep(1)  # Aguardar o carregamento e a visibilidade do botão
         driver.execute_script("arguments[0].click();", button)
         print("Botão clicado.")
-    except Exception as e:
-        print(f"Botão não encontrado ou não clicável: {e}")
-
-
-for page in range(2, 100):
-    query = urlencode({"pagina": page})
-    response_url = f'https://www.zapimoveis.com.br/venda/?&transacao=venda&itl_id=1000072&itl_name=zap_-_botao-cta_buscar_to_zap_resultado-pesquisa&{query}'
-    
-    try:
-        driver.get(response_url)
-
-        # Scrollar gradualmente a página
-        scroll_page(driver)
-
-        script_tag = driver.find_element(By.ID, '_NEXT_DATA_')
         
-        if script_tag:
-            data_json = json.loads(script_tag.get_attribute('innerHTML'))
+        # Encontre o elemento <script> pelo ID
+        script_element = driver.find_element(By.ID, '__NEXT_DATA__')
+        
+        if script_element:
+            data_json = json.loads(script_element.get_attribute('innerHTML'))
             data_vector = data_json['props']['pageProps']['initialProps']['data']
 
             for residence in data_vector:
                 if residence['address']['coordinate']:
                     data.append({
+                        "id": residence['id'],
                         "address": residence['address'],
-                        "prices": residence['prices']
+                        "prices": residence['prices'],
+                        "description": residence['description'],
+                        "amenities": residence['amenities'],
+                        "url": residence['href'],
+                        "business": residence['business'],
+                        "unitTypes": residence['unitTypes']
                     })
 
-            print(len(data))
+
         else:
-            print("Tag <script> com ID '_NEXT_DATA_' não encontrada.")
+            print("Tag <script> com ID '__next' não encontrada.")
+        print(data)
+    except Exception as e:
+        print(f"Botão não encontrado ou não clicável: {e}")
+
+
+for page in range(1, 3):
+    query = urlencode({"pagina": page})
+    response_url = f'https://www.zapimoveis.com.br/venda/?&transacao=venda&itl_id=1000072&itl_name=zap_-_botao-cta_buscar_to_zap_resultado-pesquisa&{query}'
+
+    try:
+        driver.get(response_url)
+        # Scrollar gradualmente a página
+        scroll_page(driver)
+        
     except Exception as e:
         print(f"Erro ao processar a página {page}: {e}")
         continue
 
-driver.quit()
+    driver.quit()
 
 print("data: ", data)
 print("data quantidade: ", len(data))
