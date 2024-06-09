@@ -96,7 +96,6 @@ def click_button_if_exists(driver):
         driver.execute_script("arguments[0].scrollIntoView();", button)
         # time.sleep(1)  # Aguardar o carregamento e a visibilidade do botão
         driver.execute_script("arguments[0].click();", button)
-        print("Botão clicado.")
         
         # Encontre o elemento <script> pelo ID
         script_element = driver.find_element(By.ID, '__NEXT_DATA__')
@@ -121,7 +120,6 @@ def click_button_if_exists(driver):
 
         else:
             print("Tag <script> com ID '__next' não encontrada.")
-        print(data)
     except Exception as e:
         print(f"Botão não encontrado ou não clicável: {e}")
 
