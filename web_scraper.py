@@ -59,7 +59,7 @@ class WebScraper:
 
     def extract_data(self):
         try:
-            while self.page <= 100:
+            while self.page <= 2:
                 print(f"Escaneando página {self.page}.")
                 self.driver = self.config_browser()
                 query = urlencode({ "pagina": self.page })
@@ -102,8 +102,4 @@ class WebScraper:
             print(f"Erro ao processar a página {self.page}: {e}")
 
         print(f"Processamento finalizado com {len(self.data)} imóveis.")
-        #print(self.data)
-        #print(len(self.data))
-
-scraper = WebScraper()
-scraper.extract_data()
+        return self.data

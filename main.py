@@ -1,8 +1,6 @@
 import sys
 import subprocess
 
-from web_scraper import WebScraper
-
 def install(package):
     subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
@@ -20,7 +18,11 @@ for package in packages:
     except ImportError:
         install(package)
 
+from web_scraper import WebScraper
+
 # Realiza extração
 scraper = WebScraper()
-scraper.extract_data()
+data = scraper.extract_data()
+
+print(data)
 
