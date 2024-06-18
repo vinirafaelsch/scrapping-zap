@@ -1,23 +1,21 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.action_chains import ActionChains
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium_stealth import stealth
-import random
 import json
 import time
+import random
+
 from urllib.parse import urlencode
+
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium_stealth import stealth
 
 class WebScraper:
     def __init__(self):
         self.data: list = []
         self.page: int = 1
-        self.driver = self.config_browser()
+        self.driver = None
 
     def config_browser(self):
         # Lista de User-Agents
@@ -33,7 +31,7 @@ class WebScraper:
 
         # Configurações do Selenium
         options = Options()
-        # options.add_argument("--headless")
+        options.add_argument("--headless")
         user_agent = random.choice(user_agents)
         options.add_argument(f"user-agent={user_agent}")
         options.add_argument("--disable-blink-features=AutomationControlled")
@@ -59,70 +57,53 @@ class WebScraper:
 
         return driver
 
-    def check_button_exists(self):
-        try:
-            button = WebDriverWait(self.driver, 0.02).until(
-                EC.element_to_be_clickable((By.CSS_SELECTOR, 'section.listing-wrapper__pagination nav[data-testid="l-pagination"] button[aria-label="Próxima página"]'))
-            )
-            return True
-        except Exception as e:
-            print(f"Botão não encontrado ou não clicável: {e}")
-            return False
-
-    def click_next_button(self):
-        try:
-            button = self.driver.find_element(By.CSS_SELECTOR, 'section.listing-wrapper__pagination nav[data-testid="l-pagination"] button[aria-label="Próxima página"]')
-            self.driver.execute_script("arguments[0].scrollIntoView();", button)
-            self.driver.execute_script("arguments[0].click();", button)
-            self.page = self.page + 1
-        except Exception as e:
-            print(f"Erro ao clicar no botão: {e}")
-
     def extract_data(self):
-        query = urlencode({ "pagina": self.page })
-        response_url = f'https://www.zapimoveis.com.br/venda/?&transacao=venda&itl_id=1000072&itl_name=zap_-_botao-cta_buscar_to_zap_resultado-pesquisa&{query}'
-        self.driver.get(response_url)
-
         try:
-            actions = ActionChains(self.driver)
-            while self.page <= 3:
-                actions.send_keys(Keys.END).perform()
-                time.sleep(random.uniform(0.3, 0.6))
-                actions.send_keys(Keys.HOME).perform()
-                time.sleep(random.uniform(0.3, 0.6))
+            while self.page <= 100:
+                print(f"Escaneando página {self.page}.")
+                self.driver = self.config_browser()
+                query = urlencode({ "pagina": self.page })
+                response_url = f'https://www.zapimoveis.com.br/venda/?&transacao=venda&itl_id=1000072&itl_name=zap_-_botao-cta_buscar_to_zap_resultado-pesquisa&{query}'
+                self.driver.get(response_url)
 
-                if self.check_button_exists():
-                    #######
-                    content = self.driver.page_source
-                    with open('conteudo.html', 'w', encoding='utf-8') as file:
-                        file.write(content)
-                    break
-                    ######
-                    script_element = self.driver.find_element(By.ID, '__NEXT_DATA__')
-                    if script_element:
-                        data_json = json.loads(script_element.get_attribute('innerHTML'))
-                        data_vector = data_json['props']['pageProps']['initialProps']['data']
+            
+                script_element = self.driver.find_element(By.ID, '__NEXT_DATA__')
+                if script_element:
+                    data_json = json.loads(script_element.get_attribute('innerHTML'))
+                    if 'initialProps' not in data_json['props']['pageProps']:
+                        print(f"initialProps não encontrado!")
+                        print(f"Aguardando um momento para continuar a extração.")
+                        time.sleep(random.uniform(10, 16))
+                        self.page = self.page + 1
+                        self.driver.close()
+                        self.driver.quit()
+                        continue
+                    data_vector = data_json['props']['pageProps']['initialProps']['data']
 
-                        for residence in data_vector:
-                            if residence['address']['coordinate']:
-                                self.data.append({
-                                    "id": residence['id'] or "",
-                                    "address": residence['address'] or "",
-                                    "prices": residence['prices'] or "",
-                                    "description": residence['description'] or "",
-                                    "amenities": residence['amenities'] or "",
-                                    "url": residence['href'] or "",
-                                    "business": residence['business'] or "",
-                                    "unitTypes": residence['unitTypes'] or ""
-                                })
-                        self.click_next_button()
+
+                    for residence in data_vector:
+                        if residence['address']['coordinate']:
+                            self.data.append({
+                                "id": residence['id'] or "",
+                                "address": residence['address'] or "",
+                                "prices": residence['prices'] or "",
+                                "description": residence['description'] or "",
+                                "amenities": residence['amenities'] or "",
+                                "url": residence['href'] or "",
+                                "business": residence['business'] or "",
+                                "unitTypes": residence['unitTypes'] or ""
+                            })
+                print(f"Foram extraídos {len(self.data)} imóveis.")
+                self.page = self.page + 1
+                self.driver.close()
+                self.driver.quit()
 
         except Exception as e:
             print(f"Erro ao processar a página {self.page}: {e}")
 
-        print(self.data)
-        print(len(self.data))
-        self.driver.quit()
+        print(f"Processamento finalizado com {len(self.data)} imóveis.")
+        #print(self.data)
+        #print(len(self.data))
 
 scraper = WebScraper()
 scraper.extract_data()
