@@ -19,10 +19,13 @@ for package in packages:
         install(package)
 
 from web_scraper import WebScraper
+from handle_file import HandleFile
 
 # Realiza extração
 scraper = WebScraper()
 data = scraper.extract_data()
 
-print(data)
+filler = HandleFile(data)
+filler.data2geojson()
+
 
