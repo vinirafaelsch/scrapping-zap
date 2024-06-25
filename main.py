@@ -11,6 +11,8 @@ packages = [
     "webdriver_manager"
 ]
 
+url = input("Insira a URL para começar a extração: ")
+
 # Instalando as bibliotecas
 for package in packages:
     try:
@@ -23,7 +25,7 @@ from handle_file import HandleFile
 
 # Realiza extração
 scraper = WebScraper()
-data = scraper.extract_data()
+data = scraper.extract_data(url)
 
 filler = HandleFile(data)
 filler.create_file()

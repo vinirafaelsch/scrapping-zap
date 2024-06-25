@@ -31,7 +31,7 @@ class WebScraper:
 
         # Configurações do Selenium
         options = Options()
-        options.add_argument("--headless")
+        # options.add_argument("--headless")
         user_agent = random.choice(user_agents)
         options.add_argument(f"user-agent={user_agent}")
         options.add_argument("--disable-blink-features=AutomationControlled")
@@ -44,29 +44,41 @@ class WebScraper:
         driver = webdriver.Chrome(service=service, options=options)
 
         # Configurações do selenium-stealth
-        stealth(driver,
-                languages=["en-US", "en"],
-                vendor="Google Inc.",
-                platform="Win32",
-                webgl_vendor="Intel Inc.",
-                renderer="Intel Iris OpenGL Engine",
-                fix_hairline=True)
+        stealth(
+            driver,
+            languages=["en-US", "en"],
+            vendor="Google Inc.",
+            platform="Win32",
+            webgl_vendor="Intel Inc.",
+            renderer="Intel Iris OpenGL Engine",
+            fix_hairline=True
+        )
 
         # Mascara o uso do WebDriver para detectores de bot
         driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
 
         return driver
+    
+    def close_browser(self):
+        self.driver.close()
+        self.driver.quit()
 
-    def extract_data(self):
+    def extract_data(self, url):
         try:
-            while self.page <= 2:
+            while self.page <= 100:
                 print(f"Escaneando página {self.page}.")
                 self.driver = self.config_browser()
                 query = urlencode({ "pagina": self.page })
-                response_url = f'https://www.zapimoveis.com.br/venda/?&transacao=venda&itl_id=1000072&itl_name=zap_-_botao-cta_buscar_to_zap_resultado-pesquisa&{query}'
+                response_url = f'{url}&{query}'
                 self.driver.get(response_url)
-
             
+                # Testa se as páginas para a pesquisa terminaram
+                elements = self.driver.find_elements(By.CSS_SELECTOR, 'div.result-empty')
+                if elements:
+                    print("Todas as páginas para a pesquisa foram analisadas.")
+                    self.close_browser()
+                    break
+
                 script_element = self.driver.find_element(By.ID, '__NEXT_DATA__')
                 if script_element:
                     data_json = json.loads(script_element.get_attribute('innerHTML'))
@@ -75,8 +87,7 @@ class WebScraper:
                         print(f"Aguardando um momento para continuar a extração.")
                         time.sleep(random.uniform(10, 16))
                         self.page = self.page + 1
-                        self.driver.close()
-                        self.driver.quit()
+                        self.close_browser()
                         continue
                     data_vector = data_json['props']['pageProps']['initialProps']['data']
 
@@ -95,8 +106,7 @@ class WebScraper:
                             })
                 print(f"Foram extraídos {len(self.data)} imóveis.")
                 self.page = self.page + 1
-                self.driver.close()
-                self.driver.quit()
+                self.close_browser()
 
         except Exception as e:
             print(f"Erro ao processar a página {self.page}: {e}")
