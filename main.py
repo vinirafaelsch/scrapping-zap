@@ -26,6 +26,6 @@ scraper = WebScraper()
 data = scraper.extract_data()
 
 filler = HandleFile(data)
-filler.data2geojson()
+filler.create_file()
 
 
