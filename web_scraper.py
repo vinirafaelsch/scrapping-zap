@@ -31,13 +31,16 @@ class WebScraper:
 
         # Configurações do Selenium
         options = Options()
-        # options.add_argument("--headless")
+        options.add_argument("--headless")
         user_agent = random.choice(user_agents)
         options.add_argument(f"user-agent={user_agent}")
         options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_argument('--disable-infobars')
         options.add_argument('--disable-dev-shm-usage')
         options.add_argument('--no-sandbox')
+        # Desabilida Logs e Warnings desnecessários
+        options.add_argument('--log-level=3')
+        options.add_argument('--disable-dev-shm-usage')
 
         # Instala e configura o ChromeDriver
         service = Service(ChromeDriverManager().install())
