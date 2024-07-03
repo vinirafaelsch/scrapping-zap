@@ -1,3 +1,4 @@
+import re
 import sys
 import subprocess
 
@@ -12,6 +13,9 @@ packages = [
 ]
 
 url = input("Insira a URL para começar a extração: ")
+# Remove paramentro 'pagina=X' da url
+url = re.sub(r'&pagina=[0-9]', '', url)
+print("url: ", url)
 
 # Instalando as bibliotecas
 for package in packages:
