@@ -33,7 +33,8 @@ class HandleFile:
                         "banheiros": data.get('amenities', {}).get('bathrooms', ""),
                         "estacionamentos": data.get('amenities', {}).get('parkingSpaces', ""),
                         "url": data.get('url', ""),
-                        "tipo": data.get('business', "")
+                        "tipo_negocio": data.get('business', ""),
+                        "tipo_unidade": data.get('unitTypes', "")
                     },
                     "geometry": {
                         "type": "Point",

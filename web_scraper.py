@@ -31,7 +31,7 @@ class WebScraper:
 
         # Configurações do Selenium
         options = Options()
-        options.add_argument("--headless")
+        # options.add_argument("--headless")
         user_agent = random.choice(user_agents)
         options.add_argument(f"user-agent={user_agent}")
         options.add_argument("--disable-blink-features=AutomationControlled")
