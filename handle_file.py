@@ -60,8 +60,7 @@ class HandleFile:
         if isinstance(value, int) or isinstance(value, float):
             return value
 
-        value = value.replace("\n", "")
-        value = value.replace("\\", "")
+        value = value.replace("\n", "").replace("\\", "").replace('\"', "").replace('"\\', "")
 
         return value
 
