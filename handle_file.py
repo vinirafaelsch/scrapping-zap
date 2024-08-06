@@ -56,6 +56,13 @@ class HandleFile:
     def format_value(self, value):
         if isinstance(value, type(None)) or value == "":
             return "Não informado"
+
+        if isinstance(value, int) or isinstance(value, float):
+            return value
+
+        value = value.replace("\n", "")
+        value = value.replace("\\", "")
+
         return value
 
     def value2real(self, value):
