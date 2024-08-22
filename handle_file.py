@@ -28,17 +28,18 @@ class HandleFile:
                         # "lng": data.get('address', {}).get('coordinate', {}).get('lng', ""),
                         # "radius": data.get('address', {}).get('coordinate', {}).get('radius', ""),
                         "valor": self.value2real(self.format_value(data.get('prices', {}).get('mainValue', ""))),
+                        "valor_num": data.get('prices', {}).get('mainValue', ""),
                         "iptu": self.value2real(self.format_value(data.get('prices', {}).get('iptu', ""))),
-                        "condominium": self.value2real(self.format_value(data.get('prices', {}).get('condominium', ""))),
+                        "condominio": self.value2real(self.format_value(data.get('prices', {}).get('condominium', ""))),
                         "descricao": self.format_value(data.get('description', "")),
-                        "area": self.format_value(data.get('amenities', {}).get('usableAreas', "")),
+                        "area": self.format_area(self.format_value(data.get('amenities', {}).get('usableAreas', ""))),
                         "quartos": self.format_value(data.get('amenities', {}).get('bedrooms', "")),
                         "banheiros": self.format_value(data.get('amenities', {}).get('bathrooms', "")),
                         "estacionamentos": self.format_value(data.get('amenities', {}).get('parkingSpaces', "")),
                         "url": self.format_value(data.get('url', "")),
                         "tipo_negocio": self.format_value(data.get('business', "")),
                         "tipo_imovel": self.handle_unit_types(data.get('unitTypes', "")),
-                        "data_extracao": datetime.today().strftime('%d-%m-%Y')
+                        "data_extracao": datetime.today().strftime('%d/%m/%Y')
                     },
                     "geometry": {
                         "type": "Point",
@@ -67,6 +68,11 @@ class HandleFile:
     def value2real(self, value):
         if value != "Não informado":
             return locale.currency(float(value), grouping=True)
+        return value
+
+    def format_area(self, value):
+        if value != "Não informado":
+            return (f'{value}m²')
         return value
     
     def handle_unit_types(self, data):
