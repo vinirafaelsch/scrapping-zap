@@ -8,6 +8,19 @@ class HandleFile:
         self.extracted_data: list = data
         self.geojson_data: dict = {}
 
+        self.translations = {
+            "APARTMENT": "APARTAMENTO",
+            "HOME": "CASA",
+            "COMMERCIAL_BUILDING": "EDIFÍCIO COMERCIAL",
+            "PENTHOUSE": "COBERTURA",
+            "ALLOTMENT_LAND": "TERRENO DE LOTEAMENTO",
+            "RESIDENTIAL_ALLOTMENT_LAND": "TERRENO DE LOTEAMENTO RESIDENCIAL",
+            "COMMERCIAL_ALLOTMENT_LAND": "TERRENO DE LOTEAMENTO COMERCIAL",
+            "SHED_DEPOSIT_WAREHOUSE": "ARMAZÉM DE DEPÓSITO EM GALPÃO",
+            "FARM": "FAZENDA",
+            "CONDOMINIUM": "CONDOMÍNIO"
+        }
+
         locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
     def data2geojson(self):
@@ -20,15 +33,18 @@ class HandleFile:
                     "type": "Feature",
                     "properties": {
                         "id": self.format_value(data.get('id', "")),
-                        "cidade": self.format_value(data.get('address', {}).get('city', "")),
                         "rua": self.format_value(data.get('address', {}).get('street', "")),
-                        "bairro": self.format_value(data.get('address', {}).get('neighborhood', "")),
                         "numero": self.format_value(data.get('address', {}).get('streetNumber', "")),
+                        "bairro": self.format_value(data.get('address', {}).get('neighborhood', "")),
+                        "cidade": self.format_value(data.get('address', {}).get('city', "")),
+                        "UF": self.format_value(data.get('address', {}).get('stateAcronym', "")),
                         # "lat": data.get('address', {}).get('coordinate', {}).get('lat', ""),
                         # "lng": data.get('address', {}).get('coordinate', {}).get('lng', ""),
                         # "radius": data.get('address', {}).get('coordinate', {}).get('radius', ""),
                         "valor": self.value2real(self.format_value(data.get('prices', {}).get('mainValue', ""))),
-                        "valor_num": data.get('prices', {}).get('mainValue', ""),
+                        "valor_num": float(data.get('prices', {}).get('mainValue', "")),
+                        "valor_m2": self.value2real(self.calc_value_m2(data.get('prices', {}).get('mainValue', ""), data.get('amenities', {}).get('usableAreas', ""))),
+                        "valor_m2_num": self.calc_value_m2(data.get('prices', {}).get('mainValue', ""), data.get('amenities', {}).get('usableAreas', "")),
                         "iptu": self.value2real(self.format_value(data.get('prices', {}).get('iptu', ""))),
                         "condominio": self.value2real(self.format_value(data.get('prices', {}).get('condominium', ""))),
                         "descricao": self.format_value(data.get('description', "")),
@@ -37,7 +53,7 @@ class HandleFile:
                         "banheiros": self.format_value(data.get('amenities', {}).get('bathrooms', "")),
                         "estacionamentos": self.format_value(data.get('amenities', {}).get('parkingSpaces', "")),
                         "url": self.format_value(data.get('url', "")),
-                        "tipo_negocio": self.format_value(data.get('business', "")),
+                        "tipo_negocio": self.business2pt(self.format_value(data.get('business', ""))),
                         "tipo_imovel": self.handle_unit_types(data.get('unitTypes', "")),
                         "data_extracao": datetime.today().strftime('%d/%m/%Y')
                     },
@@ -66,7 +82,7 @@ class HandleFile:
         return value
 
     def value2real(self, value):
-        if value != "Não informado":
+        if value != "Não informado" and value != "Não foi possível realizar o cálculo":
             return locale.currency(float(value), grouping=True)
         return value
 
@@ -75,17 +91,43 @@ class HandleFile:
             return (f'{value}m²')
         return value
     
+    def calc_value_m2(self, value, area):
+        if isinstance(value, type(None)) or value == "":
+            return "Não foi possível realizar o cálculo"
+
+        if isinstance(area, type(None)) or area == "":
+            return "Não foi possível realizar o cálculo"
+
+        try:
+            value = float(value)
+            area = float(area)
+
+            #if area == 0:
+            #    return "Não foi possível realizar o cálculo"
+            return value / area
+        except (ValueError, ZeroDivisionError):
+            return "Não foi possível realizar o cálculo"
+
     def handle_unit_types(self, data):
         if data == "Não informado":
             return "Não informado"
         
         if len(data) == 1:
-            return data[0]
+            return self.translations.get(data[0], data[0])
         
         string = ""
         for value in data:
+            value = self.translations.get(value, value)
+                
             string = (f'{string}; {value}') if not string == "" else value
         return string
+
+    def business2pt(self, value):
+        if value == "SALE":
+            return "VENDA"
+        if value == "RENTAL":
+            return "ALUGUEL"
+        return value
 
     def create_file(self):
         self.geojson_data = self.data2geojson()
