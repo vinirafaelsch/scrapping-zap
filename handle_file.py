@@ -18,7 +18,10 @@ class HandleFile:
             "COMMERCIAL_ALLOTMENT_LAND": "TERRENO DE LOTEAMENTO COMERCIAL",
             "SHED_DEPOSIT_WAREHOUSE": "ARMAZÉM DE DEPÓSITO EM GALPÃO",
             "FARM": "FAZENDA",
-            "CONDOMINIUM": "CONDOMÍNIO"
+            "CONDOMINIUM": "CONDOMÍNIO",
+            "COMMERCIAL_PROPERTY": "IMÓVEL COMERCIAL",
+            "OFFICE": "ESCRITÓRIO",
+            "BUSINESS": "LOJA, SALÃO, PONTO COMERCIAL" 
         }
 
         locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
@@ -42,7 +45,7 @@ class HandleFile:
                         # "lng": data.get('address', {}).get('coordinate', {}).get('lng', ""),
                         # "radius": data.get('address', {}).get('coordinate', {}).get('radius', ""),
                         "valor": self.value2real(self.format_value(data.get('prices', {}).get('mainValue', ""))),
-                        "valor_num": float(data.get('prices', {}).get('mainValue', "")),
+                        "valor_num": data.get('prices', {}).get('mainValue', ""),
                         "valor_m2": self.value2real(self.calc_value_m2(data.get('prices', {}).get('mainValue', ""), data.get('amenities', {}).get('usableAreas', ""))),
                         "valor_m2_num": self.calc_value_m2(data.get('prices', {}).get('mainValue', ""), data.get('amenities', {}).get('usableAreas', "")),
                         "iptu": self.value2real(self.format_value(data.get('prices', {}).get('iptu', ""))),
@@ -90,7 +93,7 @@ class HandleFile:
         if value != "Não informado":
             return (f'{value}m²')
         return value
-    
+
     def calc_value_m2(self, value, area):
         if isinstance(value, type(None)) or value == "":
             return "Não foi possível realizar o cálculo"
@@ -102,9 +105,9 @@ class HandleFile:
             value = float(value)
             area = float(area)
 
-            #if area == 0:
-            #    return "Não foi possível realizar o cálculo"
-            return value / area
+            value_m2 = round((value / area), 2)
+
+            return value_m2
         except (ValueError, ZeroDivisionError):
             return "Não foi possível realizar o cálculo"
 
