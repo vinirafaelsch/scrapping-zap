@@ -115,7 +115,7 @@ class HandleFile:
         
     def handle_value_m2(self, value):
         if isinstance(value, type(None)) or value == "":
-            return "Não foi possivel realziar o cálculo"
+            return "Não foi possível realizar o cálculo"
         return value
 
     def handle_unit_types(self, data):
