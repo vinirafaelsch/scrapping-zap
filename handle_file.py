@@ -45,8 +45,10 @@ class HandleFile:
                         # "lng": data.get('address', {}).get('coordinate', {}).get('lng', ""),
                         # "radius": data.get('address', {}).get('coordinate', {}).get('radius', ""),
                         "valor": self.value2real(self.format_value(data.get('prices', {}).get('mainValue', ""))),
-                        "valor_num": data.get('prices', {}).get('mainValue', ""),
-                        "valor_m2": self.value2real(self.calc_value_m2(data.get('prices', {}).get('mainValue', ""), data.get('amenities', {}).get('usableAreas', ""))),
+                        "valor_num": data.get('prices', {}).get('mainValue', None),
+                        "valor_m2": self.handle_value_m2(self.value2real(self.calc_value_m2(
+                            data.get('prices', {}).get('mainValue', ""), data.get('amenities', {}).get('usableAreas', "")
+                            ))),
                         "valor_m2_num": self.calc_value_m2(data.get('prices', {}).get('mainValue', ""), data.get('amenities', {}).get('usableAreas', "")),
                         "iptu": self.value2real(self.format_value(data.get('prices', {}).get('iptu', ""))),
                         "condominio": self.value2real(self.format_value(data.get('prices', {}).get('condominium', ""))),
@@ -85,7 +87,7 @@ class HandleFile:
         return value
 
     def value2real(self, value):
-        if value != "Não informado" and value != "Não foi possível realizar o cálculo":
+        if value != "Não informado" and value != None:
             return locale.currency(float(value), grouping=True)
         return value
 
@@ -96,10 +98,10 @@ class HandleFile:
 
     def calc_value_m2(self, value, area):
         if isinstance(value, type(None)) or value == "":
-            return "Não foi possível realizar o cálculo"
+            return None
 
         if isinstance(area, type(None)) or area == "":
-            return "Não foi possível realizar o cálculo"
+            return None
 
         try:
             value = float(value)
@@ -109,7 +111,12 @@ class HandleFile:
 
             return value_m2
         except (ValueError, ZeroDivisionError):
-            return "Não foi possível realizar o cálculo"
+            return None
+        
+    def handle_value_m2(self, value):
+        if isinstance(value, type(None)) or value == "":
+            return "Não foi possivel realziar o cálculo"
+        return value
 
     def handle_unit_types(self, data):
         if data == "Não informado":
