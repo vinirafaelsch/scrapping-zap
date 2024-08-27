@@ -1,3 +1,5 @@
+import os
+
 import json
 import time
 import random
@@ -43,7 +45,12 @@ class WebScraper:
         options.add_argument('--disable-dev-shm-usage')
 
         # Instala e configura o ChromeDriver
-        service = Service(ChromeDriverManager().install())
+        chrome_install = ChromeDriverManager().install()
+
+        folder = os.path.dirname(chrome_install)
+        chromedriver_path = os.path.join(folder, "chromedriver.exe")
+
+        service = Service(chromedriver_path)
         driver = webdriver.Chrome(service=service, options=options)
 
         # Configurações do selenium-stealth
